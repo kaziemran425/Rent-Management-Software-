@@ -1,59 +1,86 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header bordered class="bg-white text-dark">
-      <q-toolbar class="q-py-sm">
-        <q-btn flat round color="primary" icon="home_work" size="lg" to="/Home" />
-        
-        <q-toolbar-title class="text-weight-bold text-primary">
-          TenantPortal
-        </q-toolbar-title>
+    <q-header elevated class="bg-primary text-white">
+      <q-toolbar>
+        <q-btn
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+          @click="toggleLeftDrawer"
+        />
+        <q-toolbar-title> Rent Manager Admin </q-toolbar-title>
 
-        <q-tabs align="left" class="gt-sm text-grey-8" active-color="primary" indicator-color="primary">
-          <q-route-tab to="/Home" label="Dashboard" />
-          <q-route-tab to="/RentRecord" label="My Payments" />
-          <q-route-tab to="/Agreement" label="Agreement" />
-          <q-route-tab to="/Complaint" label="Support" />
-        </q-tabs>
-
-        <q-space />
-
-        <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn outline color="primary" label="Login" to="/Login" v-if="!isLoggedIn" />
-          
-          <template v-else>
-            <q-btn flat round icon="o_notifications" />
-            <q-btn flat round to="/Profile">
-              <q-avatar size="32px">
-                <img src="https://cdn.quasar.dev/img/avatar2.png">
-              </q-avatar>
-            </q-btn>
-          </template>
-        </div>
+        <q-btn-dropdown
+          flat
+          no-caps
+          stretch
+          icon="account_circle"
+          label="Owner Panel"
+        >
+          <q-list>
+            <q-item clickable v-close-popup to="/Profile">
+              <q-item-section>Profile</q-item-section>
+            </q-item>
+            <q-item clickable v-close-popup @click="logout">
+              <q-item-section class="text-negative">Logout</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
       </q-toolbar>
     </q-header>
 
-    <q-page-container class="bg-blue-grey-1">
-      <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </transition>
-      </router-view>
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1">
+      <q-list>
+        <q-item-label header>Management Menu</q-item-label>
+
+        <q-item clickable v-ripple to="/Home">
+          <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
+          <q-item-section>Home</q-item-section>
+        </q-item>
+        <q-item clickable v-ripple to="/Agreement">
+          <q-item-section avatar><q-icon name="apartment" /></q-item-section>
+          <q-item-section>Lease Agreements</q-item-section>
+        </q-item>
+        <q-item clickable v-ripple to="/RentRecord">
+          <q-item-section avatar><q-icon name="people" /></q-item-section>
+          <q-item-section>Rent Records</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/Complaint">
+          <q-item-section avatar><q-icon name="home" /></q-item-section>
+          <q-item-section>Maintenance & Support</q-item-section>
+        </q-item>
+
+        <q-separator q-my-md />
+
+        <q-item clickable v-ripple to="/Login">
+          <q-item-section avatar><q-icon name="receipt_long" /></q-item-section>
+          <q-item-section>Login</q-item-section>
+        </q-item>
+      </q-list>
+    </q-drawer>
+
+    <q-page-container>
+      <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-// This would usually come from your authStore
-const isLoggedIn = ref(true) 
+const leftDrawerOpen = ref(false);
+const router = useRouter();
+
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
+}
+
+function logout() {
+  // Add logout logic here (clear storage etc.)
+  router.push("/login");
+}
 </script>
-
-<style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
-</style>
