@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated class="bg-primary text-white">
+    <q-header elevated>
       <q-toolbar>
         <q-btn
           flat
@@ -10,88 +10,52 @@
           aria-label="Menu"
           @click="toggleLeftDrawer"
         />
-        <q-toolbar-title> Rent Manager Admin </q-toolbar-title>
-
-        <q-btn-dropdown
-          flat
-          no-caps
-          stretch
-          icon="account_circle"
-          label="Owner Panel"
-        >
-          <q-list>
-            <q-item clickable v-close-popup to="/profile">
-              <q-item-section>Profile</q-item-section>
-            </q-item>
-            <q-item clickable v-close-popup @click="logout">
-              <q-item-section class="text-negative">Logout</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
+        <q-toolbar-title>Landlord Portal</q-toolbar-title>
+        <q-btn flat round icon="account_circle" to="/admin/account" />
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1">
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
         <q-item-label header>Management Menu</q-item-label>
 
-        <q-item clickable v-ripple to="/admin/Dashboard">
-          <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
-          <q-item-section>Dashboard</q-item-section>
+        <q-item v-for="link in menuLinks" :key="link.title" clickable tag="a" :to="link.route" exact>
+          <q-item-section avatar>
+            <q-icon :name="link.icon" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ link.title }}</q-item-label>
+          </q-item-section>
         </q-item>
-        <q-item clickable v-ripple to="/admin/flats">
-          <q-item-section avatar><q-icon name="apartment" /></q-item-section>
-          <q-item-section>Flats</q-item-section>
-        </q-item>
-        <q-item clickable v-ripple to="/admin/tenants">
-          <q-item-section avatar><q-icon name="people" /></q-item-section>
-          <q-item-section>Tenants</q-item-section>
-        </q-item>
-
-        <q-item clickable v-ripple to="/admin/buildings">
-          <q-item-section avatar><q-icon name="home" /></q-item-section>
-          <q-item-section>Buildings</q-item-section>
-        </q-item>
-
-        <q-item clickable v-ripple to="/admin/Account">
-          <q-item-section avatar><q-icon name="business" /></q-item-section>
-          <q-item-section>Account</q-item-section>
-        </q-item>
-
-        <q-separator q-my-md />
-
-        <q-item clickable v-ripple to="/admin/invoices">
-          <q-item-section avatar><q-icon name="receipt_long" /></q-item-section>
-          <q-item-section>Invoices & Billing</q-item-section>
-        </q-item>
-
-        <q-item clickable v-ripple to="/admin/notices">
-          <q-item-section avatar><q-icon name="campaign" /></q-item-section>
-          <q-item-section>Notices</q-item-section>
-        </q-item>
-      
       </q-list>
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="bg-grey-2">
       <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref } from 'vue'
 
-const leftDrawerOpen = ref(false);
-const router = useRouter();
+const leftDrawerOpen = ref(false)
 
 function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value;
+  leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
-function logout() {
-  // Add logout logic here (clear storage etc.)
-  router.push("/login");
-}
+const menuLinks = [
+  { title: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard' },
+  { title: 'Buildings', icon: 'domain', route: '/admin/buildings' },
+  { title: 'Flats', icon: 'meeting_room', route: '/admin/flats' },
+  { title: 'Tenants', icon: 'people', route: '/admin/tenants' },
+  { title: 'Agreements', icon: 'description', route: '/admin/agreements' },
+  { title: 'Invoices', icon: 'receipt', route: '/admin/invoices' },
+  { title: 'Reports', icon: 'bar_chart', route: '/admin/reports' },
+  { title: 'Notices', icon: 'campaign', route: '/admin/notices' },
+  { title: 'Maintenance', icon: 'build', route: '/admin/maintenance' },
+  { title: 'Messages', icon: 'chat', route: '/admin/messages' },
+  { title: 'Settings', icon: 'settings', route: '/admin/settings' },
+]
 </script>
