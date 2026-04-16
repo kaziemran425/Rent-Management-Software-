@@ -49,7 +49,7 @@
             label="Forgot Password?"
             color="indigo-9"
             size="sm"
-            to="/forgot-password"
+            to="/auth/forgot-password"
           />
         </div>
 
@@ -65,9 +65,9 @@
           />
         </div>
 
-        <div class="row items-center q-mt-lg">
-          <q-separator col />
-          <div class="q-px-sm text-caption text-grey text-bold">OR LOGIN WITH</div>
+        <div class="row items-center  q-mt-lg">
+          <q-separator col  />
+          <div class="q-px-sm text-caption  text-grey text-green">OR LOGIN WITH</div>
           <q-separator col />
         </div>
 
@@ -90,7 +90,7 @@
         </div>
 
         <div class="text-center q-mt-xl text-grey-8">
-          Don't have an account? 
+          Don't have an account?
           <q-btn flat no-caps label="Sign Up" color="indigo-9" class="q-px-none text-bold" to="/register" />
         </div>
       </q-card-section>
@@ -136,13 +136,13 @@ const handleLogin = () => {
 
   // 2. Start Loading State
   loading.value = true
-  
+
   // 3. Simulated API Call (Desktop login logic)
   setTimeout(() => {
     loading.value = false
-    
+
     // Replace with your real auth logic
-    const success = true 
+    const success = true
 
     if (success) {
       triggerNotify('positive', 'Successfully logged in. Welcome back!')
