@@ -1,90 +1,118 @@
 <template>
-  <q-card class="chat-window column no-wrap" flat bordered>
-    <q-card-section class="bg-white text-dark row items-center q-pa-sm header-border">
-      <q-avatar size="42px" class="q-mr-md relative-position">
+  <q-card class="chat-window column no-wrap bg-white" flat bordered>
+
+    <q-card-section class="bg-white text-dark row items-center q-pa-sm header-glass z-top">
+      <q-btn flat round dense icon="arrow_back" color="grey-8" class="q-mr-sm lt-md" v-close-popup />
+
+      <q-avatar size="42px" class="q-mr-md relative-position cursor-pointer">
         <img :src="chatPartnerAvatar" :alt="chatPartnerName">
-        <q-badge floating rounded color="positive" class="online-dot" v-if="isPartnerOnline" />
+        <q-badge
+          floating
+          rounded
+          :color="isPartnerOnline ? 'positive' : 'grey-5'"
+          class="online-dot"
+        />
       </q-avatar>
 
-      <div class="col">
-        <div class="text-subtitle1 text-weight-bold line-height-tight">{{ chatPartnerName }}</div>
-        <div class="text-caption text-grey-6 line-height-tight" v-if="isPartnerOnline">Active now</div>
-        <div class="text-caption text-grey-6 line-height-tight" v-else>Offline</div>
+      <div class="col cursor-pointer">
+        <div class="text-subtitle1 text-weight-bold line-height-tight text-dark">{{ chatPartnerName }}</div>
+        <div class="text-caption text-weight-medium line-height-tight" :class="isPartnerOnline ? 'text-positive' : 'text-grey-6'">
+          {{ isPartnerOnline ? 'Active now' : 'Offline' }}
+        </div>
       </div>
 
       <q-space />
 
       <div class="q-gutter-xs">
-        <q-btn flat round dense color="primary" icon="call" />
-        <q-btn flat round dense color="primary" icon="videocam" />
-        <q-btn flat round dense color="grey-7" icon="info" />
+        <q-btn flat round dense color="primary" icon="call">
+          <q-tooltip>Voice Call</q-tooltip>
+        </q-btn>
+        <q-btn flat round dense color="primary" icon="videocam">
+          <q-tooltip>Video Call</q-tooltip>
+        </q-btn>
+        <q-btn flat round dense color="grey-7" icon="more_vert" />
       </div>
     </q-card-section>
 
-    <q-scroll-area ref="chatScrollArea" class="col bg-white q-pa-md scroll-area-custom">
-      <div v-if="isLoadingHistory" class="text-center q-my-md">
-        <q-spinner color="primary" size="2em" />
+    <q-scroll-area
+      ref="chatScrollArea"
+      class="col bg-grey-1 q-pa-md scroll-area-custom chat-background"
+    >
+      <div v-if="isLoadingHistory" class="text-center q-my-xl">
+        <q-spinner color="primary" size="2.5em" />
+        <div class="text-grey-6 q-mt-sm">Loading messages...</div>
       </div>
 
       <div v-else-if="messages.length === 0" class="text-center q-mt-xl column items-center">
-        <q-avatar size="80px" class="q-mb-md">
+        <q-avatar size="90px" class="q-mb-md shadow-2">
           <img :src="chatPartnerAvatar">
         </q-avatar>
-        <div class="text-h6 text-weight-bold">{{ chatPartnerName }}</div>
-        <div class="text-grey-6">You are connected on Iching App</div>
+        <div class="text-h6 text-weight-bold text-dark">{{ chatPartnerName }}</div>
+        <div class="text-body2 text-grey-6 q-mb-md">Property Management</div>
+        <q-chip color="grey-3" text-color="grey-8" class="text-weight-medium">
+          You are connected on Iching App
+        </q-chip>
       </div>
 
-      <div v-for="(msg) in messages" :key="msg.id || msg.time + msg.text">
+      <div class="q-py-sm">
+        <div v-for="(msg, index) in messages" :key="msg.id || index">
+          <q-chat-message
+            :name="msg.isMine ? '' : chatPartnerName"
+            :avatar="msg.isMine ? '' : chatPartnerAvatar"
+            :text="[msg.text]"
+            :stamp="msg.time"
+            :sent="msg.isMine"
+            :bg-color="msg.isMine ? 'primary' : 'white'"
+            :text-color="msg.isMine ? 'white' : 'dark'"
+            class="q-mb-sm message-bubble"
+          />
+        </div>
+
         <q-chat-message
-          :name="msg.isMine ? '' : chatPartnerName"
-          :avatar="msg.isMine ? '' : chatPartnerAvatar"
-          :text="[msg.text]"
-          :stamp="msg.time"
-          :sent="msg.isMine"
-          :bg-color="msg.isMine ? 'primary' : 'grey-2'"
-          :text-color="msg.isMine ? 'white' : 'dark'"
-          class="q-mb-sm message-bubble"
-        />
+          v-if="isTyping"
+          :name="chatPartnerName"
+          :avatar="chatPartnerAvatar"
+          bg-color="white"
+          text-color="dark"
+          class="q-mb-sm message-bubble typing-bubble"
+        >
+          <q-spinner-dots size="2rem" color="grey-6" />
+        </q-chat-message>
       </div>
-
-      <q-chat-message
-        v-if="isTyping"
-        :name="chatPartnerName"
-        :avatar="chatPartnerAvatar"
-        bg-color="grey-2"
-        class="q-mb-sm message-bubble"
-      >
-        <q-spinner-dots size="2rem" color="grey-7" />
-      </q-chat-message>
     </q-scroll-area>
 
-    <q-card-actions class="bg-white q-pa-sm row items-end input-area-border">
-      <q-btn round dense flat icon="add_circle" color="primary" class="q-mr-sm q-mb-xs" />
-      <q-btn round dense flat icon="photo_camera" color="primary" class="q-mr-sm q-mb-xs" />
+    <q-card-actions class="bg-white q-pa-sm row items-end input-area-border z-top">
+
+      <div class="row items-center q-pb-xs">
+        <q-btn round dense flat icon="add_circle" color="primary" class="q-mr-xs transition-btn" />
+        <q-btn round dense flat icon="photo_camera" color="primary" class="q-mr-xs transition-btn" />
+      </div>
 
       <q-input
         v-model="newMessage"
-        class="col bg-grey-2 input-pill"
+        class="col bg-grey-2 input-pill q-mx-xs"
         dense
         borderless
-        placeholder="Aa"
+        placeholder="Message..."
         autogrow
-        @keyup.enter.prevent="sendMessage"
+        @keyup.enter.prevent="handleEnterKey"
       >
         <template v-slot:append>
-          <q-btn round dense flat icon="sentiment_satisfied" color="primary" />
+          <q-btn round dense flat icon="sentiment_satisfied" color="primary" class="transition-btn" />
         </template>
       </q-input>
 
-      <q-btn
-        round
-        dense
-        flat
-        :icon="newMessage.trim() ? 'send' : 'thumb_up'"
-        color="primary"
-        class="q-ml-sm q-mb-xs"
-        @click="sendMessage"
-      />
+      <div class="row items-center q-pb-xs">
+        <q-btn
+          round
+          dense
+          flat
+          :icon="newMessage.trim() ? 'send' : 'thumb_up'"
+          color="primary"
+          class="q-ml-xs transition-btn"
+          @click="sendMessage"
+        />
+      </div>
     </q-card-actions>
   </q-card>
 </template>
@@ -96,7 +124,7 @@ const props = defineProps({
   chatId: {
     type: [String, Number],
     required: true,
-    description: 'Unique ID for the chat room, used for local storage'
+    description: 'Unique ID for the chat room, used for local storage drafts'
   },
   chatPartnerName: {
     type: String,
@@ -108,9 +136,8 @@ const props = defineProps({
   },
   messages: {
     type: Array,
-    default: () => [] // Expected: { id: 1, text: 'Hi', time: '10:00 AM', isMine: true }
+    default: () => []
   },
-  // New props for API readiness
   isLoadingHistory: {
     type: Boolean,
     default: false
@@ -130,8 +157,7 @@ const emit = defineEmits(['send-message'])
 const newMessage = ref('')
 const chatScrollArea = ref(null)
 
-// --- LOCAL STORAGE LOGIC (Drafting) ---
-// Save unsent text if the user accidentally closes the tab or navigates away
+// --- LOCAL STORAGE: Draft Management ---
 const draftStorageKey = computed(() => `chat_draft_${props.chatId}`)
 
 onMounted(() => {
@@ -139,7 +165,8 @@ onMounted(() => {
   if (savedDraft) {
     newMessage.value = savedDraft
   }
-  scrollToBottom()
+  // Small delay to ensure DOM is painted before scrolling
+  setTimeout(scrollToBottom, 100)
 })
 
 watch(newMessage, (val) => {
@@ -149,32 +176,45 @@ watch(newMessage, (val) => {
     localStorage.setItem(draftStorageKey.value, val)
   }
 })
-// --------------------------------------
+
+// --- METHODS ---
+const handleEnterKey = (e) => {
+  // Allow Shift+Enter for new lines, Enter to send
+  if (!e.shiftKey) {
+    sendMessage()
+  }
+}
 
 const sendMessage = () => {
   if (newMessage.value.trim() === '') {
-    // If empty and they click the button, send a "Like" (Messenger behavior)
+    // If empty, emit a quick "Like" (Standard modern chat behavior)
     emit('send-message', '👍')
+    scrollToBottom()
     return
   }
 
-  // Emit the text to the parent view
-  emit('send-message', newMessage.value)
+  // INTEGRATION POINT: Emit text to parent to handle API / WebSocket logic
+  emit('send-message', newMessage.value.trim())
 
   // Clear input & local storage draft
   newMessage.value = ''
   localStorage.removeItem(draftStorageKey.value)
+
+  scrollToBottom()
 }
 
-// Auto-scroll logic
+// --- Smooth Auto-Scroll Logic ---
 const scrollToBottom = async () => {
   await nextTick()
   if (chatScrollArea.value) {
-    chatScrollArea.value.setScrollPercentage('vertical', 1.0, 100)
+    // Using Quasar's getScrollTarget and setScrollPosition for smoother animation
+    const scrollTarget = chatScrollArea.value.getScrollTarget()
+    const duration = 300 // ms
+    chatScrollArea.value.setScrollPosition('vertical', scrollTarget.scrollHeight, duration)
   }
 }
 
-// Watchers for scrolling when new messages arrive or typing starts
+// Watchers to trigger scroll
 watch(() => props.messages, scrollToBottom, { deep: true })
 watch(() => props.isTyping, (typing) => {
   if (typing) scrollToBottom()
@@ -186,25 +226,30 @@ watch(() => props.isTyping, (typing) => {
   height: 100%;
   min-height: 500px;
   max-height: calc(100vh - 120px);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
-.header-border {
-  border-bottom: 1px solid #e0e0e0;
-  z-index: 2;
+/* Glass effect for header */
+.header-glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
 }
 
 .input-area-border {
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  background: #ffffff;
 }
 
+/* Status Dot */
 .online-dot {
   bottom: 0;
   right: -2px;
   border: 2px solid white;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
 }
 
 .line-height-tight {
@@ -213,12 +258,24 @@ watch(() => props.isTyping, (typing) => {
 
 /* Messenger-style Message Bubbles */
 :deep(.message-bubble .q-message-text) {
-  border-radius: 18px !important;
-  padding: 8px 14px;
+  border-radius: 20px !important;
+  padding: 10px 16px;
   font-size: 15px;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Subtle lift */
 }
 
-/* Hide current user's avatar to match Messenger */
+/* Custom styling for received messages */
+:deep(.q-message-received .q-message-text) {
+  border-bottom-left-radius: 4px !important;
+}
+
+/* Custom styling for sent messages */
+:deep(.q-message-sent .q-message-text) {
+  border-bottom-right-radius: 4px !important;
+}
+
+/* Hide current user's avatar to match iMessage/Messenger */
 :deep(.q-message-sent .q-message-avatar) {
   display: none;
 }
@@ -228,15 +285,38 @@ watch(() => props.isTyping, (typing) => {
 
 /* Pill-shaped Input */
 .input-pill {
-  border-radius: 20px;
-  padding-left: 12px;
-  padding-right: 4px;
-  overflow: hidden;
+  border-radius: 24px;
+  padding-left: 16px;
+  padding-right: 8px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  max-height: 120px; /* Prevents input from growing too tall */
+  overflow-y: auto;
+  transition: all 0.3s ease;
 }
 
-/* Custom Scrollbar to look cleaner */
+.input-pill:focus-within {
+  background: #f0f2f5 !important;
+}
+
+/* Button Transitions */
+.transition-btn {
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.transition-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Custom Scrollbar for a cleaner UI */
 .scroll-area-custom :deep(.q-scrollarea__thumb) {
   background: rgba(0,0,0,0.15);
-  border-radius: 4px;
+  border-radius: 6px;
+  width: 6px;
+}
+
+/* Optional: Very subtle background pattern for the chat area */
+.chat-background {
+  background-color: #f8f9fa;
+  /* background-image: url('path-to-subtle-pattern.png'); */
 }
 </style>
