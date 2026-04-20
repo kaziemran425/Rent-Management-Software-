@@ -30,7 +30,7 @@
                 <div class="col">
                   <div class="text-subtitle2 text-grey-7 text-uppercase text-weight-bold">Total Balance Due</div>
                   <div class="text-h3 text-weight-bolder text-negative q-mt-sm">
-                    ৳ {{ totalDue.toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+                    ৳ {{ formatAmt(totalDue) }}
                   </div>
                 </div>
                 <q-avatar size="60px" color="red-1" text-color="negative" icon="account_balance_wallet" />
@@ -81,7 +81,7 @@
 
             <template v-slot:body-cell-amount="props">
               <q-td :props="props" class="text-weight-bold text-dark">
-                ৳ {{ Number(props.value).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+                ৳ {{ formatAmt(props.value) }}
               </q-td>
             </template>
 
@@ -172,20 +172,22 @@
 
             <div class="row items-end q-mt-xl font-serif">
               <div class="col-6">
-                <table class="calc-box">
-                  <tr>
-                    <td>Total Amount to be Received</td>
-                    <td>৳ {{ formatAmt(selectedReceipt?.amount) }}</td>
-                  </tr>
-                  <tr>
-                    <td>Amount Received</td>
-                    <td>৳ {{ selectedReceipt?.status === 'paid' ? formatAmt(selectedReceipt?.amount) : '0.00' }}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Balance Due</strong></td>
-                    <td><strong>৳ {{ selectedReceipt?.status === 'paid' ? '0.00' : formatAmt(selectedReceipt?.amount) }}</strong></td>
-                  </tr>
-                </table>
+                <q-markup-table separator="cell" flat bordered dense class="calc-box">
+                  <tbody>
+                    <tr>
+                      <td class="text-left">Total Amount to be Received</td>
+                      <td class="text-right">৳ {{ formatAmt(selectedReceipt?.amount) }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-left">Amount Received</td>
+                      <td class="text-right">৳ {{ selectedReceipt?.status === 'paid' ? formatAmt(selectedReceipt?.amount) : '0.00' }}</td>
+                    </tr>
+                    <tr class="text-weight-bold bg-grey-2">
+                      <td class="text-left">Balance Due</td>
+                      <td class="text-right">৳ {{ selectedReceipt?.status === 'paid' ? '0.00' : formatAmt(selectedReceipt?.amount) }}</td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
               </div>
 
               <div class="col-6 q-pl-xl">
@@ -333,7 +335,6 @@ watch(invoices, (newVal) => {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newVal))
 }, { deep: true })
 
-
 const totalDue = computed(() => {
   return invoices.value
     .filter(inv => inv.status === 'pending' || inv.status === 'overdue')
@@ -355,7 +356,7 @@ const filteredInvoices = computed(() => {
 // --- Helper Functions ---
 const formatAmt = (num) => num ? Number(num).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00'
 
-// Simple Number to Words Converter for typical rent amounts
+// Simple Number to Words Converter
 const amountInWords = (num) => {
   if (!num) return ''
   const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
@@ -365,7 +366,7 @@ const amountInWords = (num) => {
   if (num < 100) return b[Math.floor(num/10)] + ' ' + a[num%10];
   if (num < 1000) return a[Math.floor(num/100)] + 'Hundred ' + amountInWords(num%100);
   if (num < 100000) return amountInWords(Math.floor(num/1000)) + 'Thousand ' + amountInWords(num%1000);
-  return num.toString(); // Fallback for very large numbers
+  return num.toString();
 }
 
 // --- Methods ---
@@ -425,13 +426,15 @@ const processPayment = () => {
   border-bottom: 1px dashed #000;
   padding-bottom: 20px;
 }
+
+/* Updated .calc-box for q-markup-table */
 .calc-box {
-  border-collapse: collapse;
   width: 100%;
+  border-color: #000 !important;
 }
 .calc-box td {
-  border: 1px solid #000;
-  padding: 8px;
+  border-color: #000 !important; /* Forces black border for the printable receipt look */
+  padding: 8px 12px;
 }
 
 /* Watermark Rubber Stamp CSS */
@@ -452,7 +455,7 @@ const processPayment = () => {
   z-index: 10;
 }
 .stamp-paid {
-  color: #e67e22; /* Classic orange/brown rubber stamp color */
+  color: #e67e22;
   border-color: #e67e22;
 }
 .stamp-unpaid {
