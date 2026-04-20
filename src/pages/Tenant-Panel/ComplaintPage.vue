@@ -12,7 +12,7 @@
           icon="add_circle"
           label="New Request"
           unelevated
-          class="text-weight-bold shadow-2"
+          class="text-weight-bold shadow-2 q-mt-md q-mt-sm-none"
           padding="8px 16px"
           @click="openNewRequest"
         />
@@ -33,30 +33,26 @@
         <div class="col-12 col-md-6" v-for="req in sortedRequests" :key="req.id">
           <q-card bordered flat class="shadow-1 request-card bg-white column fit">
             <q-card-section>
-
               <div class="row justify-between items-center q-mb-sm">
                 <div class="text-caption text-weight-bold text-grey-6 row items-center">
-                  <q-icon name="calendar_today" size="xs" class="q-mr-xs"/> {{ req.date }}
+                  <q-icon name="tag" size="xs" class="q-mr-xs"/> {{ req.id }} • {{ req.date }}
                 </div>
-                <StatusBadge :status="req.status" />
+                <q-badge :color="req.status === 'resolved' ? 'positive' : req.status === 'in_progress' ? 'info' : 'negative'">
+                  {{ req.status.toUpperCase() }}
+                </q-badge>
               </div>
 
               <div class="row items-start justify-between q-mt-sm">
                 <div class="text-h6 text-weight-bold text-dark line-height-tight col-9">
                   {{ req.title }}
                 </div>
-                <q-badge
-                  :color="getPriorityColor(req.priority)"
-                  class="text-weight-bold q-pa-xs"
-                  rounded
-                >
+                <q-badge :color="getPriorityColor(req.priority)" class="text-weight-bold q-pa-xs" rounded>
                   {{ req.priority }}
                 </q-badge>
               </div>
 
               <div class="text-caption text-primary text-weight-medium q-mt-xs q-mb-md text-uppercase">
-                <q-icon :name="getCategoryIcon(req.category)" size="sm" class="q-mr-xs" />
-                {{ req.category }}
+                <q-icon name="build" size="sm" class="q-mr-xs" /> {{ req.category }}
               </div>
 
               <q-separator class="q-mb-md" />
@@ -68,7 +64,6 @@
           </q-card>
         </div>
       </div>
-
     </div>
 
     <q-dialog v-model="showDialog" persistent>
@@ -82,77 +77,20 @@
 
         <q-card-section class="q-pa-lg">
           <q-form @submit.prevent="submitRequest" class="q-gutter-y-md">
-
-            <q-input
-              outlined
-              dense
-              v-model="newRequest.title"
-              label="Issue Title *"
-              placeholder="e.g., Leaking Kitchen Sink"
-              autofocus
-              :rules="[val => !!val || 'Title is required']"
-            />
-
+            <q-input outlined dense v-model="newRequest.title" label="Issue Title *" autofocus :rules="[val => !!val || 'Required']" />
             <div class="row q-col-gutter-md">
-              <div class="col-12 col-sm-6">
-                <q-select
-                  outlined
-                  dense
-                  v-model="newRequest.category"
-                  :options="categories"
-                  label="Category *"
-                  :rules="[val => !!val || 'Category is required']"
-                >
-                  <template v-slot:prepend><q-icon name="category" color="grey-7" /></template>
-                </q-select>
+              <div class="col-6">
+                <q-select outlined dense v-model="newRequest.category" :options="['Plumbing', 'Electrical', 'HVAC / AC', 'Appliances', 'Other']" label="Category *" :rules="[val => !!val || 'Required']" />
               </div>
-              <div class="col-12 col-sm-6">
-                <q-select
-                  outlined
-                  dense
-                  v-model="newRequest.priority"
-                  :options="priorities"
-                  label="Priority Level *"
-                  :rules="[val => !!val || 'Priority is required']"
-                >
-                  <template v-slot:prepend><q-icon name="low_priority" color="grey-7" /></template>
-                </q-select>
+              <div class="col-6">
+                <q-select outlined dense v-model="newRequest.priority" :options="['Low', 'Normal', 'High', 'Emergency']" label="Priority *" :rules="[val => !!val || 'Required']" />
               </div>
             </div>
-
-            <q-input
-              outlined
-              type="textarea"
-              v-model="newRequest.description"
-              label="Detailed Description *"
-              placeholder="Please describe the issue, its exact location, and when it started."
-              rows="4"
-              :rules="[val => !!val || 'Description is required']"
-            />
-
-            <div>
-              <div class="text-caption text-weight-bold text-grey-8 q-mb-xs">Attach Photo (Optional)</div>
-              <q-file
-                outlined
-                dense
-                v-model="newRequest.photo"
-                label="Choose an image..."
-                accept="image/*"
-              >
-                <template v-slot:prepend><q-icon name="add_a_photo" color="grey-7" /></template>
-              </q-file>
-            </div>
+            <q-input outlined type="textarea" v-model="newRequest.description" label="Detailed Description *" rows="4" :rules="[val => !!val || 'Required']" />
 
             <div class="row justify-end q-mt-lg q-gutter-x-sm">
               <q-btn flat label="Cancel" color="grey-8" class="text-weight-bold" v-close-popup />
-              <q-btn
-                unelevated
-                label="Submit Request"
-                color="primary"
-                type="submit"
-                class="text-weight-bold"
-                :loading="isSubmitting"
-              />
+              <q-btn unelevated label="Submit Request" color="primary" type="submit" class="text-weight-bold" :loading="isSubmitting" />
             </div>
           </q-form>
         </q-card-section>
@@ -164,173 +102,67 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import StatusBadge from 'src/components/StatusBadge.vue'
 
 const $q = useQuasar()
-
-// --- UI State ---
 const showDialog = ref(false)
 const isLoading = ref(true)
 const isSubmitting = ref(false)
 
-// --- Options ---
-const categories = ['Plumbing', 'Electrical', 'HVAC / AC', 'Appliances', 'Structural', 'Other']
-const priorities = ['Low', 'Normal', 'High', 'Emergency']
-
-// --- Data State ---
+const LOCAL_STORAGE_KEY = 'tenant_maintenance_requests'
 const requests = ref([])
 
-const newRequest = reactive({
-  title: '',
-  category: '',
-  priority: 'Normal',
-  description: '',
-  photo: null
-})
+const newRequest = reactive({ title: '', category: '', priority: 'Normal', description: '' })
 
-const LOCAL_STORAGE_KEY = 'tenant_maintenance_requests'
-
-// --- Lifecycle & API Readiness ---
 onMounted(() => {
-  fetchRequests()
-})
-
-const fetchRequests = () => {
-  isLoading.value = true
-
-  // INTEGRATION POINT: Replace setTimeout with axios.get('/api/tenant/maintenance')
   setTimeout(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY)
-
     if (savedData) {
       requests.value = JSON.parse(savedData)
     } else {
-      // Default Mock Data
       requests.value = [
-        {
-          id: 'REQ-1042',
-          date: '2026-04-10',
-          title: 'Leaking Faucet',
-          category: 'Plumbing',
-          priority: 'Normal',
-          description: 'The kitchen sink is leaking continuously from the base of the tap.',
-          status: 'open'
-        },
-        {
-          id: 'REQ-1011',
-          date: '2026-02-15',
-          title: 'Heater Broken',
-          category: 'HVAC / AC',
-          priority: 'High',
-          description: 'No hot water coming from the master bathroom shower.',
-          status: 'resolved'
-        }
+        { id: 'REQ-1042', date: '2026-04-10', title: 'Leaking Faucet', category: 'Plumbing', priority: 'Normal', description: 'Sink is leaking.', tenant: 'Kazi Emran', flat: 'A-101', status: 'open' }
       ]
     }
     isLoading.value = false
-  }, 600) // Simulated network delay
-}
+  }, 500)
+})
 
-// Auto-save to Local Storage
 watch(requests, (newVal) => {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newVal))
 }, { deep: true })
 
-// --- Computed ---
-// Sort requests so the newest ones and 'open' ones appear at the top
 const sortedRequests = computed(() => {
-  return [...requests.value].sort((a, b) => {
-    if (a.status === 'open' && b.status !== 'open') return -1
-    if (a.status !== 'open' && b.status === 'open') return 1
-    return new Date(b.date) - new Date(a.date)
-  })
+  return [...requests.value].sort((a, b) => new Date(b.date) - new Date(a.date))
 })
-
-// --- Methods ---
-
-const openNewRequest = () => {
-  // Reset form
-  newRequest.title = ''
-  newRequest.category = ''
-  newRequest.priority = 'Normal'
-  newRequest.description = ''
-  newRequest.photo = null
-  showDialog.value = true
-}
 
 const submitRequest = () => {
   isSubmitting.value = true
-
-  // INTEGRATION POINT:
-  // Use FormData if sending a photo:
-  // const formData = new FormData()
-  // formData.append('title', newRequest.title) ...
-  // axios.post('/api/tenant/maintenance', formData)
-
   setTimeout(() => {
-    const today = new Date().toISOString().split('T')[0]
-
     requests.value.unshift({
-      id: `REQ-${Math.floor(Math.random() * 10000)}`, // Generate mock ID
-      date: today,
+      id: `REQ-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toISOString().split('T')[0],
       title: newRequest.title,
       category: newRequest.category,
       priority: newRequest.priority,
       description: newRequest.description,
+      tenant: 'Kazi Emran', // Mocking current logged in user
+      flat: 'A-101',
       status: 'open'
     })
 
-    $q.notify({
-      type: 'positive',
-      message: 'Maintenance request submitted successfully.',
-      position: 'top-right'
-    })
-
+    newRequest.title = ''; newRequest.category = ''; newRequest.description = '';
+    $q.notify({ type: 'positive', message: 'Request submitted to Admin.', position: 'top-right' })
     isSubmitting.value = false
     showDialog.value = false
-  }, 800)
-}
-
-// --- Helper UI Functions ---
-const getCategoryIcon = (category) => {
-  const icons = {
-    'Plumbing': 'water_drop',
-    'Electrical': 'electrical_services',
-    'HVAC / AC': 'ac_unit',
-    'Appliances': 'kitchen',
-    'Structural': 'home_work',
-    'Other': 'build'
-  }
-  return icons[category] || 'build'
+  }, 600)
 }
 
 const getPriorityColor = (priority) => {
-  const colors = {
-    'Low': 'grey-6',
-    'Normal': 'info',
-    'High': 'orange',
-    'Emergency': 'negative'
-  }
+  const colors = { 'Low': 'grey-6', 'Normal': 'info', 'High': 'orange', 'Emergency': 'negative' }
   return colors[priority] || 'primary'
 }
 </script>
 
 <style scoped>
-.tracking-tight {
-  letter-spacing: -0.02em;
-}
-.line-height-tight {
-  line-height: 1.2;
-}
-.rounded-borders {
-  border-radius: 12px;
-}
-.request-card {
-  border-radius: 12px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.request-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-}
+.request-card { border-radius: 12px; }
 </style>

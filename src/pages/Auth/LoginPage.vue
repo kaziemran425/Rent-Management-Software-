@@ -1,165 +1,135 @@
 <template>
   <q-page class="flex flex-center bg-grey-2">
-    <q-card class="login-card shadow-10">
-      <q-card-section class="q-pa-xl">
-        <div class="text-center">
-          <div class="text-h4 text-bold text-indigo-9">Welcome</div>
-          <div class="text-subtitle2 text-grey-7 q-mt-sm">Login with your credentials</div>
-        </div>
-
-        <div class="q-mt-xl q-gutter-y-md">
-          <q-input
-            v-model="username"
-            label="Username"
-            outlined
-            dense
-            color="indigo-9"
-          >
-            <template v-slot:prepend>
-              <q-icon name="person" />
-            </template>
-          </q-input>
-
-          <q-input
-            v-model="password"
-            label="Password"
-            :type="isPassword ? 'password' : 'text'"
-            outlined
-            dense
-            color="indigo-9"
-            @keyup.enter="handleLogin"
-          >
-            <template v-slot:prepend>
-              <q-icon name="lock" />
-            </template>
-            <template v-slot:append>
-              <q-icon
-                :name="isPassword ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="isPassword = !isPassword"
-              />
-            </template>
-          </q-input>
-        </div>
-
-        <div class="text-right q-mt-sm">
-          <q-btn
-            flat
-            no-caps
-            label="Forgot Password?"
-            color="indigo-9"
-            size="sm"
-            to="/auth/forgot-password"
-          />
-        </div>
-
-        <div class="q-mt-lg">
-          <q-btn
-            label="Login"
-            color="indigo-9"
-            class="full-width text-bold"
-            unelevated
-            size="lg"
-            :loading="loading"
-            @click="handleLogin"
-          />
-        </div>
-
-        <div class="row items-center  q-mt-lg">
-          <q-separator col  />
-          <div class="q-px-sm text-caption  text-grey text-green">OR LOGIN WITH</div>
-          <q-separator col />
-        </div>
-
-        <div class="row q-col-gutter-md q-mt-md">
-          <div class="col">
-            <q-btn outline color="grey-4" class="full-width">
-              <q-img src="~assets/social-assets/google-logo.png" style="width: 20px; height: 20px" fit="contain" />
-            </q-btn>
-          </div>
-          <div class="col">
-            <q-btn outline color="grey-4" class="full-width">
-              <q-img src="~assets/social-assets/facebook.jpg" style="width: 20px; height: 20px" fit="contain" />
-            </q-btn>
-          </div>
-          <div class="col">
-            <q-btn outline color="grey-4" class="full-width">
-              <q-img src="~assets/social-assets/apple-logo.jpeg" style="width: 20px; height: 20px" fit="contain" />
-            </q-btn>
+    <q-card class="shadow-4 login-card rounded-borders">
+      <div class="row">
+        <div class="col-12 col-md-5 bg-primary text-white flex flex-center q-pa-xl text-center">
+          <div>
+            <q-icon name="apartment" size="80px" class="q-mb-md" />
+            <div class="text-h4 text-weight-bolder tracking-tight">Iching Residences</div>
+            <div class="text-subtitle1 q-mt-sm opacity-80">Smart Property Management</div>
           </div>
         </div>
 
-        <div class="text-center q-mt-xl text-grey-8">
-          Don't have an account?
-          <q-btn flat no-caps label="Sign Up" color="indigo-9" class="q-px-none text-bold" to="/register" />
+        <div class="col-12 col-md-7 q-pa-xl bg-white">
+          <div class="text-h5 text-weight-bold text-dark q-mb-xs">Welcome Back</div>
+          <div class="text-grey-7 q-mb-xl">Please sign in to your account</div>
+
+          <q-form @submit.prevent="handleLogin" class="q-gutter-y-md">
+            <q-input
+              outlined
+              v-model="credentials.email"
+              label="Email Address"
+              type="email"
+              :rules="[val => !!val || 'Email is required']"
+            >
+              <template v-slot:prepend><q-icon name="email" color="grey-6" /></template>
+            </q-input>
+
+            <q-input
+              outlined
+              v-model="credentials.password"
+              label="Password"
+              :type="showPassword ? 'text' : 'password'"
+              :rules="[val => !!val || 'Password is required']"
+            >
+              <template v-slot:prepend><q-icon name="lock" color="grey-6" /></template>
+              <template v-slot:append>
+                <q-icon
+                  :name="showPassword ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="showPassword = !showPassword"
+                />
+              </template>
+            </q-input>
+
+            <div class="row justify-between items-center q-mt-sm">
+              <q-checkbox v-model="rememberMe" label="Remember me" color="primary" />
+              <q-btn flat color="primary" label="Forgot Password?" to="/auth/forgot-password" class="text-capitalize" />
+            </div>
+
+            <q-btn
+              type="submit"
+              color="primary"
+              class="full-width q-mt-lg text-weight-bold"
+              size="lg"
+              label="Sign In"
+              unelevated
+              :loading="isLoading"
+            />
+          </q-form>
+
+          <div class="q-mt-xl q-pa-md bg-blue-1 rounded-borders text-caption text-grey-8">
+            <strong>Testing Accounts:</strong><br>
+            Admin: <code>admin@iching.com</code><br>
+            Tenant: <code>tenant@iching.com</code>
+          </div>
         </div>
-      </q-card-section>
+      </div>
     </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 
-const $q = useQuasar()
 const router = useRouter()
+const $q = useQuasar()
 
-// Reactive State
-const username = ref('')
-const password = ref('')
-const isPassword = ref(true)
-const loading = ref(false)
+const isLoading = ref(false)
+const showPassword = ref(false)
+const rememberMe = ref(false)
 
-/**
- * Standardized Notification Template
- * @param {string} type - 'positive' or 'negative'
- * @param {string} msg - The message text
- */
-const triggerNotify = (type, msg) => {
-  $q.notify({
-    type: type, // Quasar handles color/icon automatically for 'positive', 'negative', 'warning', 'info'
-    message: msg,
-    position: 'top',
-    timeout: 2500,
-    actions: [{ icon: 'close', color: 'white', round: true }]
-  })
-}
+const credentials = reactive({
+  email: '',
+  password: 'password123' // Dummy password
+})
 
 const handleLogin = () => {
-  // 1. Validate inputs
-  if (!username.value || !password.value) {
-    triggerNotify('negative', 'Username and Password are required')
-    return
-  }
+  isLoading.value = true
 
-  // 2. Start Loading State
-  loading.value = true
-
-  // 3. Simulated API Call (Desktop login logic)
+  // INTEGRATION POINT: Replace with axios.post('/api/auth/login')
   setTimeout(() => {
-    loading.value = false
+    let role = ''
+    let redirectRoute = ''
 
-    // Replace with your real auth logic
-    const success = true
-
-    if (success) {
-      triggerNotify('positive', 'Successfully logged in. Welcome back!')
-      router.push('/Admin/Dashboard')
+    // Mock RBAC (Role-Based Access Control) Logic
+    if (credentials.email.toLowerCase() === 'admin@iching.com') {
+      role = 'admin'
+      redirectRoute = '/admin/dashboard'
+    } else if (credentials.email.toLowerCase() === 'tenant@iching.com') {
+      role = 'tenant'
+      redirectRoute = '/tenant/dashboard'
     } else {
-      triggerNotify('negative', 'Invalid credentials. Please try again.')
+      $q.notify({ type: 'negative', message: 'Invalid credentials. Try admin@iching.com or tenant@iching.com' })
+      isLoading.value = false
+      return
     }
-  }, 1500)
+
+    // Save Session to Local Storage
+    const userSession = {
+      email: credentials.email,
+      role: role,
+      token: 'mock-jwt-token-12345'
+    }
+    localStorage.setItem('iching_user_session', JSON.stringify(userSession))
+
+    $q.notify({ type: 'positive', message: `Successfully logged in as ${role.toUpperCase()}`, position: 'top-right' })
+
+    isLoading.value = false
+    router.push(redirectRoute)
+
+  }, 1000)
 }
 </script>
 
 <style scoped>
 .login-card {
   width: 100%;
-  max-width: 450px;
-  border-radius: 16px;
-  /* Adding a subtle border for desktop clarity */
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  max-width: 900px;
+  overflow: hidden;
 }
+.tracking-tight { letter-spacing: -0.03em; }
+.opacity-80 { opacity: 0.8; }
 </style>

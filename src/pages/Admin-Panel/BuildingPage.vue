@@ -3,7 +3,7 @@
     <div class="row items-center justify-between q-mb-lg">
       <div>
         <h4 class="text-h4 text-weight-bolder text-dark q-my-none tracking-tight">Property Management</h4>
-        <div class="text-subtitle1 text-grey-7 q-mt-xs">Manage your buildings and monitor occupancy</div>
+        <div class="text-subtitle1 text-grey-7 q-mt-xs">Manage your buildings, locations, and overall capacity</div>
       </div>
       <q-btn
         color="primary"
@@ -20,96 +20,134 @@
       <q-spinner color="primary" size="3em" />
     </div>
 
-    <div v-else-if="buildings.length === 0" class="flex flex-center q-pa-xl text-grey-6 text-center bg-white shadow-1 rounded-borders q-mt-md">
-      <div>
-        <q-icon name="domain_disabled" size="80px" color="grey-4" />
-        <div class="text-h5 text-weight-bold q-mt-md text-dark">No buildings found</div>
-        <div class="q-mt-sm">Click "Add New Building" to register your first property.</div>
-        <q-btn color="primary" outline label="Add Building" class="q-mt-md" @click="openAddDialog" />
+    <div v-else>
+      <div class="row q-col-gutter-lg q-mb-lg">
+        <div class="col-12 col-md-4">
+          <q-card flat bordered class="shadow-1 rounded-borders bg-primary text-white">
+            <q-card-section class="row items-center no-wrap">
+              <div class="col">
+                <div class="text-subtitle2 text-blue-2 text-uppercase text-weight-bold">Total Buildings</div>
+                <div class="text-h3 text-weight-bolder q-mt-sm">{{ totalBuildings }}</div>
+              </div>
+              <q-avatar size="60px" color="blue-8" text-color="white" icon="domain" />
+            </q-card-section>
+          </q-card>
+        </div>
+        <div class="col-12 col-md-4">
+          <q-card flat bordered class="shadow-1 rounded-borders bg-white">
+            <q-card-section class="row items-center no-wrap">
+              <div class="col">
+                <div class="text-subtitle2 text-grey-7 text-uppercase text-weight-bold">Total Capacity (Units)</div>
+                <div class="text-h3 text-weight-bolder text-dark q-mt-sm">{{ totalCapacity }}</div>
+              </div>
+              <q-avatar size="60px" color="grey-2" text-color="dark" icon="meeting_room" />
+            </q-card-section>
+          </q-card>
+        </div>
+        <div class="col-12 col-md-4">
+          <q-card flat bordered class="shadow-1 rounded-borders bg-white">
+            <q-card-section class="row items-center no-wrap">
+              <div class="col">
+                <div class="text-subtitle2 text-grey-7 text-uppercase text-weight-bold">Overall Occupancy</div>
+                <div class="text-h3 text-weight-bolder text-info q-mt-sm">{{ overallOccupancy }}%</div>
+              </div>
+              <q-avatar size="60px" color="blue-1" text-color="info" icon="pie_chart" />
+            </q-card-section>
+          </q-card>
+        </div>
       </div>
-    </div>
 
-    <div v-else class="row q-col-gutter-lg">
-      <div class="col-12 col-md-6 col-lg-4" v-for="building in buildings" :key="building.id">
-        <q-card flat bordered class="shadow-1 building-card bg-white column fit">
+      <div v-if="buildings.length === 0" class="flex flex-center q-pa-xl text-grey-6 text-center bg-white shadow-1 rounded-borders q-mt-md">
+        <div>
+          <q-icon name="domain_disabled" size="80px" color="grey-4" />
+          <div class="text-h5 text-weight-bold q-mt-md text-dark">No buildings found</div>
+          <div class="q-mt-sm">Click "Add New Building" to register your first property.</div>
+          <q-btn color="primary" outline label="Add Building" class="q-mt-md text-weight-bold" @click="openAddDialog" />
+        </div>
+      </div>
 
-          <q-img
-            :src="building.image || 'https://cdn.quasar.dev/img/parallax2.jpg'"
-            :ratio="16/9"
-            class="image-container"
-          >
-            <q-badge
-              floating
-              rounded
-              :color="building.occupiedUnits >= building.totalUnits ? 'positive' : 'info'"
-              class="q-ma-sm text-weight-bold shadow-1"
-              style="top: 8px; right: 8px; padding: 6px 12px;"
+      <div v-else class="row q-col-gutter-lg">
+        <div class="col-12 col-md-6 col-lg-4" v-for="building in buildings" :key="building.id">
+          <q-card flat bordered class="shadow-1 building-card bg-white column fit">
+
+            <q-img
+              :src="building.image || 'https://cdn.quasar.dev/img/parallax2.jpg'"
+              :ratio="16/9"
+              class="image-container"
             >
-              {{ building.occupiedUnits >= building.totalUnits ? 'Fully Occupied' : 'Vacancies Available' }}
-            </q-badge>
-          </q-img>
+              <q-badge
+                floating
+                rounded
+                :color="building.occupiedUnits >= building.totalUnits ? 'positive' : 'info'"
+                class="q-ma-sm text-weight-bold shadow-1"
+                style="top: 8px; right: 8px; padding: 6px 12px;"
+              >
+                {{ building.occupiedUnits >= building.totalUnits ? 'Fully Occupied' : 'Vacancies Available' }}
+              </q-badge>
+            </q-img>
 
-          <q-card-section class="col">
-            <div class="row justify-between items-start">
-              <div class="col-10">
-                <div class="text-h6 text-weight-bolder text-dark line-height-tight">{{ building.name }}</div>
-                <div class="text-caption text-grey-7 row items-center q-mt-xs">
-                  <q-icon name="location_on" size="14px" class="q-mr-xs text-primary" />
-                  {{ building.location }}
+            <q-card-section class="col">
+              <div class="row justify-between items-start">
+                <div class="col-10">
+                  <div class="text-h5 text-weight-bolder text-dark line-height-tight">{{ building.name }}</div>
+                  <div class="text-caption text-grey-7 row items-center q-mt-xs">
+                    <q-icon name="location_on" size="16px" class="q-mr-xs text-primary" />
+                    {{ building.location }}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="q-mt-md">
-              <div class="row justify-between text-caption text-weight-bold q-mb-xs">
-                <span class="text-grey-8">Occupancy</span>
-                <span :class="occupancyColorText(building)">
-                  {{ Math.round((building.occupiedUnits / building.totalUnits) * 100) }}%
-                </span>
+              <div class="q-mt-lg">
+                <div class="row justify-between text-caption text-weight-bold q-mb-xs">
+                  <span class="text-grey-8">Occupancy Rate</span>
+                  <span :class="occupancyColorText(building)">
+                    {{ Math.round((building.occupiedUnits / building.totalUnits) * 100) || 0 }}%
+                  </span>
+                </div>
+                <q-linear-progress
+                  rounded
+                  size="10px"
+                  :value="building.occupiedUnits / building.totalUnits"
+                  :color="occupancyColor(building)"
+                  track-color="grey-3"
+                />
               </div>
-              <q-linear-progress
-                rounded
-                size="8px"
-                :value="building.occupiedUnits / building.totalUnits"
-                :color="occupancyColor(building)"
-                track-color="grey-3"
-              />
-            </div>
-          </q-card-section>
+            </q-card-section>
 
-          <q-separator />
+            <q-separator />
 
-          <q-card-section class="row justify-around text-center bg-grey-1 q-pa-sm">
-            <div class="col">
-              <div class="text-h6 text-weight-bolder text-dark">{{ building.totalUnits }}</div>
-              <div class="text-caption text-grey-6 text-uppercase text-weight-bold" style="font-size: 10px;">Total Units</div>
-            </div>
-            <q-separator vertical />
-            <div class="col">
-              <div class="text-h6 text-weight-bolder text-positive">{{ building.occupiedUnits }}</div>
-              <div class="text-caption text-grey-6 text-uppercase text-weight-bold" style="font-size: 10px;">Occupied</div>
-            </div>
-            <q-separator vertical />
-            <div class="col">
-              <div class="text-h6 text-weight-bolder text-orange-9">{{ building.totalUnits - building.occupiedUnits }}</div>
-              <div class="text-caption text-grey-6 text-uppercase text-weight-bold" style="font-size: 10px;">Vacant</div>
-            </div>
-          </q-card-section>
+            <q-card-section class="row justify-around text-center bg-grey-1 q-pa-sm">
+              <div class="col">
+                <div class="text-h6 text-weight-bolder text-dark">{{ building.totalUnits }}</div>
+                <div class="text-caption text-grey-6 text-uppercase text-weight-bold" style="font-size: 11px;">Total Units</div>
+              </div>
+              <q-separator vertical />
+              <div class="col">
+                <div class="text-h6 text-weight-bolder text-positive">{{ building.occupiedUnits }}</div>
+                <div class="text-caption text-grey-6 text-uppercase text-weight-bold" style="font-size: 11px;">Occupied</div>
+              </div>
+              <q-separator vertical />
+              <div class="col">
+                <div class="text-h6 text-weight-bolder text-orange-9">{{ building.totalUnits - building.occupiedUnits }}</div>
+                <div class="text-caption text-grey-6 text-uppercase text-weight-bold" style="font-size: 11px;">Vacant</div>
+              </div>
+            </q-card-section>
 
-          <q-separator />
+            <q-separator />
 
-          <q-card-actions align="between" class="q-px-md q-py-sm bg-white">
-            <q-btn outline color="primary" icon="meeting_room" label="Units" size="sm" class="text-weight-bold" to="/admin/flats" />
-            <div class="q-gutter-xs">
-              <q-btn flat round color="grey-7" icon="edit" size="sm" @click="openEditDialog(building)">
-                <q-tooltip>Edit Building</q-tooltip>
-              </q-btn>
-              <q-btn flat round color="negative" icon="delete" size="sm" @click="confirmDelete(building)">
-                <q-tooltip>Remove Building</q-tooltip>
-              </q-btn>
-            </div>
-          </q-card-actions>
-        </q-card>
+            <q-card-actions align="between" class="q-px-md q-py-sm bg-white">
+              <q-btn outline color="primary" icon="meeting_room" label="Manage Units" size="sm" class="text-weight-bold" to="/admin/flats" />
+              <div class="q-gutter-xs">
+                <q-btn flat round color="grey-7" icon="edit" size="sm" @click="openEditDialog(building)">
+                  <q-tooltip>Edit Building</q-tooltip>
+                </q-btn>
+                <q-btn flat round color="negative" icon="delete" size="sm" @click="confirmDelete(building)">
+                  <q-tooltip>Remove Building</q-tooltip>
+                </q-btn>
+              </div>
+            </q-card-actions>
+          </q-card>
+        </div>
       </div>
     </div>
 
@@ -124,23 +162,21 @@
         <q-card-section class="q-pa-lg">
           <q-form @submit.prevent="saveBuilding" class="q-gutter-y-md">
 
-            <q-select
+            <q-input
               v-model="form.name"
               label="Building Name *"
-              :options="buildingNameOptions"
+              placeholder="e.g., Skyline Tower"
               outlined
               dense
-              emit-value
-              map-options
               :rules="[val => !!val || 'Building name is required']"
             >
               <template v-slot:prepend><q-icon name="business" color="grey-7" /></template>
-            </q-select>
+            </q-input>
 
             <q-input
               v-model="form.location"
               label="Location/Address *"
-              placeholder="e.g., Mirpur, Shaoraparha"
+              placeholder="e.g., Mirpur, Dhaka"
               outlined
               dense
               :rules="[val => !!val || 'Location is required']"
@@ -196,7 +232,7 @@
                 type="submit"
                 unelevated
                 class="text-weight-bold"
-                :loading="loading"
+                :loading="isSubmitting"
               />
             </div>
           </q-form>
@@ -208,7 +244,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
@@ -217,18 +253,9 @@ const $q = useQuasar()
 const showDialog = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
-const loading = ref(false)
-const isPageLoading = ref(true) // For API integration
+const isSubmitting = ref(false)
+const isPageLoading = ref(true)
 const imageFile = ref(null)
-
-// --- Options ---
-const buildingNameOptions = [
-  'Green Valley Residency',
-  'Skyline Tower',
-  'Ocean View Apartment',
-  'Rose Garden Complex',
-  'Elite Plaza'
-]
 
 // --- Data State ---
 const buildings = ref([])
@@ -241,9 +268,10 @@ const form = reactive({
   image: ''
 })
 
+// BRIDGE KEY: Using this across other pages (like FlatPage) to reference buildings
 const LOCAL_STORAGE_KEY = 'house_rent_buildings'
 
-// --- Lifecycle & API Readiness ---
+// --- Lifecycle ---
 onMounted(() => {
   fetchBuildings()
 })
@@ -251,18 +279,17 @@ onMounted(() => {
 const fetchBuildings = () => {
   isPageLoading.value = true
 
-  // INTEGRATION POINT: Replace setTimeout with axios.get('/api/buildings')
   setTimeout(() => {
     const savedData = localStorage.getItem(LOCAL_STORAGE_KEY)
     if (savedData) {
       buildings.value = JSON.parse(savedData)
     } else {
-      // Mock Initial Data
+      // Default Mock Initial Data
       buildings.value = [
         {
           id: 1,
           name: 'Green Valley Residency',
-          location: 'Mirpur, Shaoraparha',
+          location: 'Mirpur, Dhaka',
           totalUnits: 24,
           occupiedUnits: 22,
           image: ''
@@ -281,26 +308,42 @@ const fetchBuildings = () => {
   }, 500)
 }
 
+// Auto-save to Local Storage
 watch(buildings, (newVal) => {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newVal))
 }, { deep: true })
 
+// --- Computed KPIs ---
+const totalBuildings = computed(() => buildings.value.length)
+
+const totalCapacity = computed(() => {
+  return buildings.value.reduce((sum, b) => sum + (Number(b.totalUnits) || 0), 0)
+})
+
+const overallOccupancy = computed(() => {
+  if (totalCapacity.value === 0) return 0
+  const totalOccupied = buildings.value.reduce((sum, b) => sum + (Number(b.occupiedUnits) || 0), 0)
+  return Math.round((totalOccupied / totalCapacity.value) * 100)
+})
+
 // --- Helper Functions ---
 const occupancyColor = (building) => {
+  if (!building.totalUnits) return 'grey'
   const ratio = building.occupiedUnits / building.totalUnits
   if (ratio >= 0.9) return 'positive'
-  if (ratio >= 0.5) return 'primary'
+  if (ratio >= 0.5) return 'info'
   return 'warning'
 }
 
 const occupancyColorText = (building) => {
+  if (!building.totalUnits) return 'text-grey'
   const ratio = building.occupiedUnits / building.totalUnits
   if (ratio >= 0.9) return 'text-positive'
-  if (ratio >= 0.5) return 'text-primary'
+  if (ratio >= 0.5) return 'text-info'
   return 'text-warning'
 }
 
-// Image Upload Handler (Base64 for LocalStorage, switch to FormData for real API)
+// Convert image file to Base64 to save inside Local Storage
 const handleImageUpload = (file) => {
   if (!file) {
     form.image = ''
@@ -343,12 +386,7 @@ const openEditDialog = (building) => {
 }
 
 const saveBuilding = () => {
-  loading.value = true
-
-  // INTEGRATION POINT:
-  // const payload = { ...form }
-  // if (isEditing.value) axios.put(`/api/buildings/${editingId.value}`, payload)
-  // else axios.post('/api/buildings', payload)
+  isSubmitting.value = true
 
   setTimeout(() => {
     if (isEditing.value) {
@@ -364,7 +402,7 @@ const saveBuilding = () => {
       })
       $q.notify({ type: 'positive', message: 'New building added successfully!', position: 'top-right' })
     }
-    loading.value = false
+    isSubmitting.value = false
     showDialog.value = false
   }, 600)
 }
@@ -372,13 +410,12 @@ const saveBuilding = () => {
 const confirmDelete = (building) => {
   $q.dialog({
     title: 'Confirm Deletion',
-    message: `Are you sure you want to remove "${building.name}"? This action cannot be undone.`,
+    message: `Are you sure you want to remove "${building.name}"? All associated unit data might be affected.`,
     cancel: true,
     persistent: true,
     ok: { color: 'negative', label: 'Delete', unelevated: true },
     cancel: { flat: true, color: 'grey-8', label: 'Cancel' }
   }).onOk(() => {
-    // INTEGRATION POINT: axios.delete(`/api/buildings/${building.id}`)
     buildings.value = buildings.value.filter(b => b.id !== building.id)
     $q.notify({ type: 'info', message: 'Building removed.', position: 'top-right' })
   })
